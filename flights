@@ -1,0 +1,399 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+/*******************************************************************************
+ * List preprocessing directives - you may define your own.
+*******************************************************************************/
+#define MAX_FLIGHTCODE_LEN 6
+#define MAX_CITYCODE_LEN 3
+#define MAX_NUM_FLIGHTS 5
+#define DB_NAME "database.txt"
+
+/*******************************************************************************
+ * List structs - you may define struct date_time and struct flight only. Each
+ * struct definition should have only the fields mentioned in the assignment
+ * description.
+*******************************************************************************/
+struct date_time { 		/* Struct for date and time of flight */
+
+	int month;			/* Month, day, hour, and minute are all declared as integers */
+	int day;
+	int hour;
+	int minute;
+
+}; typedef struct date_time date_time_t;  /* Defines struct date_time as date_time_t */
+
+struct flight{			/* Struct for flights */
+
+	char flightcode[MAX_FLIGHTCODE_LEN+1]; /* size of this string is MAX_FLIGHTCODE_LEN+1 because the element starts from 0 */
+	date_time_t departure_dt;				/* Nested struct */
+	char arrival_city[MAX_CITYCODE_LEN+1]; /* size of this string is MAX_CITYCODE_LEN+1 */
+	date_time_t arrival_dt;
+
+}; typedef struct flight flight_t;
+
+int flight_count = 0;    /* Global variable to ensure number of flights entered does not exceed 5 */
+
+/*******************************************************************************
+ * Function prototypes - do NOT change the given prototypes. However you may
+ * define your own functions if required.
+*******************************************************************************/
+void print_menu (void);
+void add_flight (int count, flight_t flights[MAX_NUM_FLIGHTS]);
+void display_flights (int count, flight_t flights[MAX_NUM_FLIGHTS]);
+void save_flights (flight_t flights[MAX_NUM_FLIGHTS], int flight_count);
+void load_flights (flight_t flights[MAX_NUM_FLIGHTS], int *flight_count);
+
+/*******************************************************************************
+ * Main
+*******************************************************************************/
+int main(void)
+{
+    /* TODO */
+	int instruction;
+	int count;
+	flight_t flights[MAX_NUM_FLIGHTS];
+
+    print_menu();
+
+    /* Loop will run as long as the function doesn't end */
+    while (scanf("%d",&instruction) != EOF){
+        /* Skeleton for the print list with 5 options */
+		if ( instruction <= 0 || instruction > 5  ){
+			printf("Invalid choice\n");
+
+		}
+
+		if (instruction == 1){
+			count = flight_count;
+			/* Function called to add flight */
+			add_flight(count, flights);
+
+		}
+		if (instruction == 2){
+			count = flight_count;
+			/* Function to display flights */
+			display_flights(count, flights);
+
+		}
+		if (instruction == 3){
+            save_flights(flights, flight_count);
+
+
+		}
+		if (instruction == 4){
+			load_flights (flights, &flight_count);
+
+		}
+		if (instruction == 5){
+			return 0;
+		}
+    print_menu(); /*Will print menu each time the options are completed*/
+
+	}
+
+    return 0;
+}
+
+/*******************************************************************************
+ * This function prints the initial menu with all instructions on how to use
+ * this program.
+ * inputs:
+ * - none
+ * outputs:
+ * - none
+*******************************************************************************/
+void print_menu (void)
+{
+    printf("\n"
+    "1. add a flight\n"
+    "2. display all flights to a destination\n"
+    "3. save the flights to the database file\n"
+    "4. load the flights from the database file\n"
+    "5. exit the program\n"
+    "Enter choice (number between 1-5)>\n");
+}
+
+void add_flight(int count, flight_t flights[MAX_NUM_FLIGHTS]){
+
+	if (count >= 5){
+        /*Prints this once count is 5 or more*/
+		printf("Cannot add more flights - memory full\n");
+	}
+
+	else{ /*Takes user input for another flught if count <5*/
+
+        int flag1 = 1;
+        int scan_counter = 0;
+		while (flag1 != 0){
+                 /*Takes user input for flight code*/
+			printf("Enter flight code>\n");
+			scanf("%s", flights[count].flightcode);
+			scan_counter++;
+			if (scan_counter > 1){
+                break;
+			}
+
+
+			int warning = 0;    /*variable declared to alert for warning*/
+			int i = 2; /* This is so the subsequent while loop starts from the
+                        3rd element of the flightcode array*/
+
+			/*check if there are maximum 5 characters in the input */
+			if (strlen(flights[count].flightcode) > 6){
+				warning++;
+			}
+			/* check the first character to see if it is a capital letter */
+			if (flights[count].flightcode[0] < 'A' ||
+			    flights[count].flightcode[0] > 'Z'){
+					warning++;
+			}
+			/* check the second character to see if it is a capital letter */
+			if (flights[count].flightcode[1] < 'A' ||
+			    flights[count].flightcode[1] > 'Z'){
+					warning++;
+				}
+			/* checks if the last characters are numbers by iterating through them */
+			/* While Loop will iterate until it reaches null*/
+			while (flights[count].flightcode[i] != '\0'){
+				if (flights[count].flightcode[i] < '0' ||
+				    flights[count].flightcode[i] > '9'){
+						warning++;
+					}
+				i++;
+			}
+			if (warning > 0){
+                /*Prints Invalid input if warning is >0 */
+				printf("Invalid input\n");
+			}
+			else{
+			    /*Ends the while loop if the user input for flightcode
+			    is valid*/
+				flag1 = 0;
+			}
+		}
+
+
+        /*Departure info*/
+        int flag2 = 1;
+        printf("Enter departure info for the flight leaving SYD.\n");
+
+        while(flag2 != 0){
+            /*Takes user input for departure date and time*/
+            printf("Enter month, date, hour and minute separated by spaces>\n");
+            /*Store the user input for date and time into structs*/
+            scanf("%d %d %d %d", &flights[count].departure_dt.month,
+			             	 &flights[count].departure_dt.day,
+			 				 &flights[count].departure_dt.hour,
+			 				 &flights[count].departure_dt.minute);
+
+        /* If statement checks for invalid input for departure date and time */
+
+         if (1 > flights[count].departure_dt.month ||
+				flights[count].departure_dt.month > 12 ||
+			1 > flights[count].departure_dt.day ||
+				flights[count].departure_dt.day > 31 ||
+			0 > flights[count].departure_dt.hour ||
+				flights[count].departure_dt.hour > 23 ||
+			0 > flights[count].departure_dt.minute ||
+				flights[count].departure_dt.minute > 59
+		   	) {
+
+			printf("Invalid input\n");
+
+            }
+         else{
+            flag2 = 0;   /*Raises the flag to break while loop
+                        which stops user input for departure info*/
+            }
+        }
+
+
+		/*Takes user input for arrival code*/
+			printf("Enter arrival city code>\n");
+            scanf("%s", flights[count].arrival_city);
+
+
+    /*Arrival info*/
+        int flag4 = 1;
+        printf("Enter arrival info.\n");
+
+        while(flag4 != 0){
+            /*Takes user input for arrival date and time*/
+            printf("Enter month, date, hour and minute separated by spaces>\n");
+            scanf("%d %d %d %d",&flights[count].arrival_dt.month,
+                                &flights[count].arrival_dt.day,
+                                &flights[count].arrival_dt.hour,
+                                &flights[count].arrival_dt.minute);
+
+        /* If statement checks for invalid input for date and time */
+
+         if (1 > flights[count].arrival_dt.month ||
+				flights[count].arrival_dt.month > 12 ||
+			1 > flights[count].arrival_dt.day ||
+				flights[count].arrival_dt.day > 31 ||
+			0 > flights[count].arrival_dt.hour ||
+				flights[count].arrival_dt.hour > 23 ||
+			0 > flights[count].arrival_dt.minute ||
+				flights[count].arrival_dt.minute > 59
+		   	) {
+
+			printf("Invalid input\n");
+
+            }
+         else{
+            flag4 = 0;   /*Raises the flag to break while loop
+                            which stops user input for arrival info*/
+            }
+
+        count++;		/* Increments the count by 1 */
+		flight_count = count;  /* Changes the global variable to new count
+								 number.We do this because the count is
+								 killed after function finishes */
+	}
+
+}
+}
+
+void display_flights (int count, flight_t flights[MAX_NUM_FLIGHTS]){
+
+ int check =0;
+	char input[MAX_CITYCODE_LEN];
+
+	printf("Enter arrival city code or enter * to show all destinations>\n");
+	scanf("%s", input);     /*Takes user input*/
+
+
+    if(strcmp(input, "*") != 0){
+        int j, k;
+        int space;
+        if (count == 0){
+            printf("No flights\n");
+        }
+        else{
+
+            for(j=0; j<flight_count; j++){
+                if (strcmp(flights[j].arrival_city, input) == 0){
+                    if (check == 0){ /*This line prevents double printing header*/
+                    printf("Flight Origin          Destination\n");
+                    printf("------ --------------- ---------------\n");
+                    }
+
+                    check++;
+                    printf("%-6s SYD %02d-%02d %02d:%02d %.3s",
+                    flights[j].flightcode,
+                    flights[j].departure_dt.month, flights[j].departure_dt.day,
+                    flights[j].departure_dt.hour, flights[j].departure_dt.minute,
+                    flights[j].arrival_city);
+
+                    if (strlen(flights[j].arrival_city)> 3)
+                    {
+                    space = MAX_CITYCODE_LEN - 3;
+                    }
+                    else
+                    {
+                    space = MAX_CITYCODE_LEN - strlen(flights[j].arrival_city);
+                    }
+
+                    for(k=0; k<=space; k++){
+                        printf(" ");
+                    }
+
+                    printf("%02d-%02d %02d:%02d\n",
+                    flights[j].arrival_dt.month, flights[j].arrival_dt.day,
+                    flights[j].arrival_dt.hour, flights[j].arrival_dt.minute);
+
+                }
+            }
+                if(check == 0){
+                    printf("No flights\n");
+                }
+
+        }
+
+    }
+
+
+	else {
+		int i, k;
+		int space;
+		if(flight_count != 0){
+
+            printf("Flight Origin          Destination\n");
+            printf("------ --------------- ---------------\n");
+            for(i=0; i<count; i++){
+
+			/* For loops for that prints all flights that have been inputted */
+
+			 printf("%-6s SYD %02d-%02d %02d:%02d %.3s",
+                    flights[i].flightcode,
+                    flights[i].departure_dt.month, flights[i].departure_dt.day,
+                    flights[i].departure_dt.hour, flights[i].departure_dt.minute,
+                    flights[i].arrival_city);
+
+                    if (strlen(flights[i].arrival_city)> 3)
+                    {
+                    space = MAX_CITYCODE_LEN - 3;
+                    }
+                    else
+                    {
+                    space = MAX_CITYCODE_LEN - strlen(flights[i].arrival_city);
+                    }
+
+                    for(k=0; k<=space; k++){
+                        printf(" ");
+                    }
+
+                    printf("%02d-%02d %02d:%02d\n",
+                    flights[i].arrival_dt.month, flights[i].arrival_dt.day,
+                    flights[i].arrival_dt.hour, flights[i].arrival_dt.minute);
+
+            }
+		}
+		else{
+            printf("No flights\n");
+		}
+	 }
+}
+
+void save_flights (flight_t flights[MAX_NUM_FLIGHTS], int flight_count){
+
+    FILE* fpointer = NULL;
+    fpointer = fopen(DB_NAME, "w");  /*Opens a file called database
+                                            and saves all flights into there*/
+            int i;
+			if(fpointer != NULL){
+
+				fwrite(&flight_count, 1, sizeof(int), fpointer);
+				for(i=0; i<flight_count; i++){
+					fwrite(&flights[i], 1, sizeof(flight_t), fpointer);
+				}
+			fclose(fpointer);
+
+			}
+
+			else{
+                printf("Write Error\n");
+			}
+
+}
+
+void load_flights (flight_t flights[MAX_NUM_FLIGHTS], int *flight_count){
+    FILE* fpointer = NULL;                  /* Creates a file pointer that is pointing to nothing ie. NULL*/
+    fpointer = fopen(DB_NAME, "r");      /* File pointer now points to the file database */
+	int i;
+
+    if (fpointer != NULL){
+
+       fread(flight_count, 1, sizeof(int), fpointer);
+	   for(i=0; i<*flight_count; i++){
+		   fread(&flights[i], 1, sizeof(flight_t), fpointer);
+	   }
+	fclose(fpointer);
+    }
+    else{
+        printf("Read error\n");
+    }
+
+}
